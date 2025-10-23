@@ -1,28 +1,55 @@
 import cv2
+from pynput.keyboard import Key, Controller
 import mediapipe as mp
+import time
 
-# VideoPath = 'testAsset/boxingSrc.mp4'
-VideoPath = 'testAsset/videoplayback.mp4'
 
+
+# VideoPath = 0
+VideoPath = ' testAsset/videoplayback.mp4'
+
+keyboard = Controller()
+
+keyboard.press(Key.cmd)
+keyboard.press(Key.left)
+keyboard.release(Key.left)
+keyboard.release(Key.cmd)
+
+time.sleep(1)
+keyboard.press(Key.alt)
+keyboard.press(Key.tab)
+keyboard.release(Key.tab)
+keyboard.release(Key.alt)
+time.sleep(1)
+
+keyboard.press(Key.cmd)
+keyboard.press(Key.right)
+keyboard.release(Key.right)
+keyboard.release(Key.cmd)
+
+print('hi')
 mp_pose = mp.solutions.pose
 pose = mp_pose.Pose(min_detection_confidence=0.7, min_tracking_confidence=0.7)
 cap = cv2.VideoCapture(VideoPath)
+# cap = cv2.VideoCapture(0)
 
-selected_indices = [15, 16, 26, 12, 11]  # left/right wrist, right knee, left/right shoulders
+selected_indices = [15, 16, 26, 25]  # left/right wrist, right knee, left/right shoulders
 hit_status = {
     15: False,  # left wrist
     16: False,  # right wrist
     26: False,  # right knee
     12: False,  # right shoulder
-    11: False   # left shoulder
+    11: False,   # left shoulder
+    25: False  # left knee
 }
 
 part_names = {
-    15: "left_wrist",
-    16: "right_wrist",
-    26: "right_knee",
-    12: "right_shoulder",
-    11: "left_shoulder"
+    16: ["left_wrist",'a'],
+    15: ["right_wrist",'s'],
+    25: ["right_knee",'x'],
+    26: ["left_knee",'z'],
+    # 11: "right_shoulder",
+    # 12: "left_shoulder"
 }
 
 while True:
@@ -64,16 +91,17 @@ while True:
             )
 
             if inside_box and not hit_status[idx]:
-                print(f"{part_names[idx]} HIT")
+                print(f"{part_names[idx][0]} HIT")
+                keyboard.press(part_names[idx][1])
                 hit_status[idx] = True  # mark as already hit
 
             elif not inside_box:
                 hit_status[idx] = False  # reset if outside
-
+                keyboard.release(part_names[idx][1])
 
     cv2.imshow("Frame", frame)
 
-    if cv2.waitKey(1) == ord('q'):
+    if cv2.waitKey(1) == 27:  # 27 is the ASCII code for ESC
         break
 
 cap.release()
